@@ -41,7 +41,7 @@ cp .env.example .env
 3. Налаштуйте `.env`:
 
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/announcements?schema=public
+DATABASE_URL=postgresql://postgres:password@localhost:5433/announcements?schema=public
 JWT_SECRET=your-secret-key-at-least-256-bits-long
 ```
 

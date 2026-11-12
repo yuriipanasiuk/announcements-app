@@ -9,6 +9,10 @@ import {
   loginSchema,
   registerSchema,
 } from './validators/auth.validator.ts';
+import {
+  createAnnouncementSchema,
+  updateAnnouncementSchema,
+} from './validators/announcements.validator.ts';
 
 extendZodWithOpenApi(z);
 
@@ -90,6 +94,100 @@ registry.registerPath({
   responses: {
     200: { description: 'OK' },
     401: { description: 'Unauthorized' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/announcements',
+  summary: 'Список оголошень з пагінацією, пошуком та сортуванням',
+  request: {
+    query: z.object({
+      page: z.string().optional(),
+      search: z.string().optional(),
+      sort: z.enum(['newest', 'oldest']).optional(),
+    }),
+  },
+  responses: {
+    200: { description: 'OK' },
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/announcements/{id}',
+  summary: 'Отримання оголошення за ID',
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    200: { description: 'OK' },
+    400: { description: 'Invalid ID' },
+    404: { description: 'Not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/announcements',
+  summary: 'Створення оголошення',
+  security: [{ bearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: createAnnouncementSchema },
+      },
+    },
+  },
+  responses: {
+    201: { description: 'Created' },
+    400: { description: 'Validation error' },
+    401: { description: 'Unauthorized' },
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/announcements/{id}',
+  summary: 'Часткове оновлення оголошення',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+    body: {
+      content: {
+        'application/json': { schema: updateAnnouncementSchema },
+      },
+    },
+  },
+  responses: {
+    200: { description: 'OK' },
+    400: { description: 'Validation error or invalid ID' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Access denied' },
+    404: { description: 'Not found' },
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/announcements/{id}',
+  summary: 'Видалення оголошення',
+  security: [{ bearerAuth: [] }],
+  request: {
+    params: z.object({
+      id: z.string(),
+    }),
+  },
+  responses: {
+    204: { description: 'No Content' },
+    400: { description: 'Invalid ID' },
+    401: { description: 'Unauthorized' },
+    403: { description: 'Access denied' },
+    404: { description: 'Not found' },
   },
 });
 

@@ -6,6 +6,7 @@ import 'dotenv/config';
 
 import { generateOpenApiDocument } from './src/openapi.ts';
 import announcementsRouter from './src/routes/announcements.routes.ts';
+import { authRoutes } from './src/routes/auth.routes.ts';
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 });
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use('/announcements', announcementsRouter);
+app.use('/auth', authRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' });

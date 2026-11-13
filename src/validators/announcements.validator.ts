@@ -21,3 +21,22 @@ export const updateAnnouncementSchema = createAnnouncementSchema
   .refine(data => Object.keys(data).length > 0, {
     message: 'Має бути передано хоча б одне поле для оновлення',
   });
+
+export const announcementIdSchema = z.object({
+  id: z.coerce
+    .number({ error: 'ID має бути числом' })
+    .int('ID має бути цілим числом')
+    .positive('ID має бути більшим за 0'),
+});
+
+export const queryAnnouncementsSchema = z.object({
+  page: z.coerce.number().int().min(1, 'Мінімальна сторінка — 1').default(1),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1, 'Мінімальний ліміт — 1')
+    .max(100, 'Максимальний ліміт — 100')
+    .default(10),
+  category: z.enum(['sale', 'service', 'job', 'other']).optional(),
+  search: z.string().trim().min(1).optional(),
+});

@@ -6,16 +6,30 @@ import {
   getAnnouncementById,
   updateAnnouncementById,
 } from '../controllers/announcements.controller.ts';
-import { validateBody } from '../middleware/validate.ts';
 import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../middleware/validate.ts';
+import {
+  announcementIdSchema,
   createAnnouncementSchema,
+  queryAnnouncementsSchema,
   updateAnnouncementSchema,
 } from '../validators/announcements.validator.ts';
 
 const announcementsRouter = Router();
 
-announcementsRouter.get('/', getAllAnnouncements);
-announcementsRouter.get('/:id', getAnnouncementById);
+announcementsRouter.get(
+  '/',
+  validateQuery(queryAnnouncementsSchema),
+  getAllAnnouncements
+);
+announcementsRouter.get(
+  '/:id',
+  validateParams(announcementIdSchema),
+  getAnnouncementById
+);
 
 announcementsRouter.post(
   '/',
@@ -25,9 +39,14 @@ announcementsRouter.post(
 
 announcementsRouter.patch(
   '/:id',
+  validateParams(announcementIdSchema),
   validateBody(updateAnnouncementSchema),
   updateAnnouncementById
 );
-announcementsRouter.delete('/:id', deleteAnnouncementById);
+announcementsRouter.delete(
+  '/:id',
+  validateParams(announcementIdSchema),
+  deleteAnnouncementById
+);
 
 export default announcementsRouter;

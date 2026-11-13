@@ -6,3 +6,5 @@ export type createAnnouncementType = {
   price: number;
   category: AnnouncementCategory;
 };
+
+export type updateAnnouncementType = Partial<createAnnouncementType>;

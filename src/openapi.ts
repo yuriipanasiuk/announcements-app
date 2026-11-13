@@ -31,7 +31,15 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': { schema: registerSchema },
+        'application/json': {
+          schema: registerSchema,
+          example: {
+            username: 'ivan_petrenko',
+            email: 'ivan@example.com',
+            password: 'Password123!',
+            name: 'Іван',
+          },
+        },
       },
     },
   },
@@ -48,7 +56,13 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': { schema: loginSchema },
+        'application/json': {
+          schema: loginSchema,
+          example: {
+            email: 'ivan@example.com',
+            password: 'Password123!',
+          },
+        },
       },
     },
   },

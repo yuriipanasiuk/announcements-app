@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import prisma from '../../prisma/client.ts';
-import { createAnnouncementType } from '../types/types.ts';
+import {
+  createAnnouncementType,
+  updateAnnouncementType,
+} from '../types/types.ts';
 
 const announcementInclude = {
   user: {
@@ -72,12 +75,6 @@ export const getAnnouncementById = async (
   try {
     const announcementId = parseInt(req.params.id);
 
-    if (!Number.isInteger(announcementId) || announcementId <= 0) {
-      return res.status(400).json({
-        error: 'ID має бути додатнім числом',
-      });
-    }
-
     const announcement = await prisma.announcement.findUnique({
       where: { id: announcementId },
       include: announcementInclude,
@@ -129,18 +126,12 @@ export const createAnnouncement = async (
 };
 
 export const updateAnnouncementById = async (
-  req: Request<{ id: string }>,
+  req: Request<{ id: string }, {}, updateAnnouncementType>,
   res: Response,
   next: NextFunction
 ) => {
   try {
     const announcementId = parseInt(req.params.id);
-
-    if (!Number.isInteger(announcementId) || announcementId <= 0) {
-      return res.status(400).json({
-        error: 'ID має бути додатнім числом',
-      });
-    }
 
     const announcement = await prisma.announcement.findUnique({
       where: { id: announcementId },
@@ -179,12 +170,6 @@ export const deleteAnnouncementById = async (
 ) => {
   try {
     const announcementId = parseInt(req.params.id);
-
-    if (!Number.isInteger(announcementId) || announcementId <= 0) {
-      return res.status(400).json({
-        error: 'ID має бути додатнім числом',
-      });
-    }
 
     const announcement = await prisma.announcement.findUnique({
       where: { id: announcementId },

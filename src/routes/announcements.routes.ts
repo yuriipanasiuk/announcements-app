@@ -12,40 +12,40 @@ import {
   validateQuery,
 } from '../middleware/validate.ts';
 import {
-  announcementIdSchema,
-  createAnnouncementSchema,
-  queryAnnouncementsSchema,
-  updateAnnouncementSchema,
+  AnnouncementIdSchema,
+  CreateAnnouncementSchema,
+  QueryAnnouncementsSchema,
+  UpdateAnnouncementSchema,
 } from '../validators/announcements.validator.ts';
 
 const announcementsRouter = Router();
 
 announcementsRouter.get(
   '/',
-  validateQuery(queryAnnouncementsSchema),
+  validateQuery(QueryAnnouncementsSchema),
   getAllAnnouncements
 );
 announcementsRouter.get(
   '/:id',
-  validateParams(announcementIdSchema),
+  validateParams(AnnouncementIdSchema),
   getAnnouncementById
 );
 
 announcementsRouter.post(
   '/',
-  validateBody(createAnnouncementSchema),
+  validateBody(CreateAnnouncementSchema),
   createAnnouncement
 );
 
 announcementsRouter.patch(
   '/:id',
-  validateParams(announcementIdSchema),
-  validateBody(updateAnnouncementSchema),
+  validateParams(AnnouncementIdSchema),
+  validateBody(UpdateAnnouncementSchema),
   updateAnnouncementById
 );
 announcementsRouter.delete(
   '/:id',
-  validateParams(announcementIdSchema),
+  validateParams(AnnouncementIdSchema),
   deleteAnnouncementById
 );
 

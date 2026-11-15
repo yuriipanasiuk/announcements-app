@@ -10,13 +10,63 @@ import {
   registerSchema,
 } from './validators/auth.validator.ts';
 import {
+  announcementIdSchema,
   createAnnouncementSchema,
+  queryAnnouncementsSchema,
   updateAnnouncementSchema,
 } from './validators/announcements.validator.ts';
 
 extendZodWithOpenApi(z);
 
 export const registry = new OpenAPIRegistry();
+
+const userResponseSchema = registry.register(
+  'User',
+  registerSchema.omit({ password: true }).extend({
+    id: z.number().int().openapi({ example: 1 }),
+  })
+);
+
+const authResponseSchema = registry.register(
+  'AuthResponse',
+  authTokenSchema.extend({
+    user: userResponseSchema,
+  })
+);
+
+const announcementResponseSchema = registry.register(
+  'Announcement',
+  createAnnouncementSchema.extend({
+    id: z.number().int().openapi({ example: 5 }),
+    createdAt: z
+      .string()
+      .datetime()
+      .openapi({ example: '2025-01-10T12:00:00.000Z' }),
+    updatedAt: z
+      .string()
+      .datetime()
+      .openapi({ example: '2025-01-10T12:00:00.000Z' }),
+    user: userResponseSchema,
+  })
+);
+
+const paginationSchema = registry.register(
+  'Pagination',
+  z.object({
+    total: z.number().int().openapi({ example: 23 }),
+    page: z.number().int().openapi({ example: 2 }),
+    totalPages: z.number().int().openapi({ example: 3 }),
+    perPage: z.number().int().openapi({ example: 10 }),
+  })
+);
+
+const paginatedAnnouncementsSchema = registry.register(
+  'PaginatedAnnouncements',
+  z.object({
+    data: z.array(announcementResponseSchema),
+    pagination: paginationSchema,
+  })
+);
 
 registry.registerComponent('securitySchemes', 'bearerAuth', {
   type: 'http',
@@ -31,20 +81,17 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': {
-          schema: registerSchema,
-          example: {
-            username: 'ivan_petrenko',
-            email: 'ivan@example.com',
-            password: 'Password123!',
-            name: 'Іван',
-          },
-        },
+        'application/json': { schema: registerSchema },
       },
     },
   },
   responses: {
-    201: { description: 'Created' },
+    201: {
+      description: 'Created',
+      content: {
+        'application/json': { schema: userResponseSchema },
+      },
+    },
     409: { description: 'Username or email already taken' },
   },
 });
@@ -56,18 +103,17 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': {
-          schema: loginSchema,
-          example: {
-            email: 'ivan@example.com',
-            password: 'Password123!',
-          },
-        },
+        'application/json': { schema: loginSchema },
       },
     },
   },
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: authResponseSchema },
+      },
+    },
     401: { description: 'Invalid credentials' },
   },
 });
@@ -84,7 +130,12 @@ registry.registerPath({
     },
   },
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: authTokenSchema },
+      },
+    },
     401: { description: 'Invalid token' },
   },
 });
@@ -106,7 +157,12 @@ registry.registerPath({
   summary: 'Профіль поточного користувача',
   security: [{ bearerAuth: [] }],
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: userResponseSchema },
+      },
+    },
     401: { description: 'Unauthorized' },
   },
 });
@@ -116,14 +172,15 @@ registry.registerPath({
   path: '/announcements',
   summary: 'Список оголошень з пагінацією, пошуком та сортуванням',
   request: {
-    query: z.object({
-      page: z.string().optional(),
-      search: z.string().optional(),
-      sort: z.enum(['newest', 'oldest']).optional(),
-    }),
+    query: queryAnnouncementsSchema,
   },
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: paginatedAnnouncementsSchema },
+      },
+    },
   },
 });
 
@@ -132,12 +189,15 @@ registry.registerPath({
   path: '/announcements/{id}',
   summary: 'Отримання оголошення за ID',
   request: {
-    params: z.object({
-      id: z.string(),
-    }),
+    params: announcementIdSchema,
   },
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: announcementResponseSchema },
+      },
+    },
     400: { description: 'Invalid ID' },
     404: { description: 'Not found' },
   },
@@ -156,7 +216,12 @@ registry.registerPath({
     },
   },
   responses: {
-    201: { description: 'Created' },
+    201: {
+      description: 'Created',
+      content: {
+        'application/json': { schema: announcementResponseSchema },
+      },
+    },
     400: { description: 'Validation error' },
     401: { description: 'Unauthorized' },
   },
@@ -168,9 +233,7 @@ registry.registerPath({
   summary: 'Часткове оновлення оголошення',
   security: [{ bearerAuth: [] }],
   request: {
-    params: z.object({
-      id: z.string(),
-    }),
+    params: announcementIdSchema,
     body: {
       content: {
         'application/json': { schema: updateAnnouncementSchema },
@@ -178,7 +241,12 @@ registry.registerPath({
     },
   },
   responses: {
-    200: { description: 'OK' },
+    200: {
+      description: 'OK',
+      content: {
+        'application/json': { schema: announcementResponseSchema },
+      },
+    },
     400: { description: 'Validation error or invalid ID' },
     401: { description: 'Unauthorized' },
     403: { description: 'Access denied' },
@@ -192,9 +260,7 @@ registry.registerPath({
   summary: 'Видалення оголошення',
   security: [{ bearerAuth: [] }],
   request: {
-    params: z.object({
-      id: z.string(),
-    }),
+    params: announcementIdSchema,
   },
   responses: {
     204: { description: 'No Content' },

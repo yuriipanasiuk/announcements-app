@@ -18,31 +18,29 @@ const announcementInclude = {
 } as const;
 
 export const getAllAnnouncements = async (req: Request, res: Response) => {
-  const pageParam = Number(req.query.page);
-  const page = pageParam && pageParam > 0 ? pageParam : 1;
-  const perPage = 10;
-  const skip = (page - 1) * perPage;
+  const { page, limit, search, category, sort } = res.locals.query;
 
-  const search = typeof req.query.search === 'string' ? req.query.search : '';
-  const sort = req.query.sort === 'oldest' ? 'asc' : 'desc';
+  const skip = (page - 1) * limit;
+  const order = sort === 'oldest' ? 'asc' : 'desc';
 
-  const where = search
-    ? {
-        title: {
-          contains: search,
-          mode: 'insensitive' as const,
-        },
-      }
-    : {};
+  const where = {
+    ...(search && {
+      title: {
+        contains: search,
+        mode: 'insensitive' as const,
+      },
+    }),
+    ...(category && { category }),
+  };
 
   const [announcements, total] = await Promise.all([
     prisma.announcement.findMany({
       where,
       orderBy: {
-        createdAt: sort,
+        createdAt: order,
       },
       skip,
-      take: perPage,
+      take: limit,
       include: announcementInclude,
     }),
 
@@ -54,8 +52,8 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
     pagination: {
       total,
       page,
-      totalPages: Math.ceil(total / perPage),
-      perPage,
+      totalPages: Math.ceil(total / limit),
+      limit,
     },
   });
 };
@@ -73,7 +71,7 @@ export const getAnnouncementById = async (
 
   if (!announcement) {
     return res.status(404).json({
-      error: 'Оголошення не знайдено',
+      error: 'Announcement not found',
     });
   }
 
@@ -90,7 +88,7 @@ export const createAnnouncement = async (
 
   if (!Number.isInteger(userId) || userId <= 0) {
     return res.status(401).json({
-      error: 'Неавторизований користувач',
+      error: 'Unauthorized user',
     });
   }
 
@@ -120,7 +118,7 @@ export const updateAnnouncementById = async (
 
   if (!announcement) {
     return res.status(404).json({
-      error: 'Оголошення не знайдено',
+      error: 'Announcement not found',
     });
   }
 
@@ -153,7 +151,7 @@ export const deleteAnnouncementById = async (
 
   if (!announcement) {
     return res.status(404).json({
-      error: 'Оголошення не знайдено',
+      error: 'Announcement not found',
     });
   }
 

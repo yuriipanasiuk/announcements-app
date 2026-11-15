@@ -51,4 +51,5 @@ export const queryAnnouncementsSchema = z.strictObject({
   category: announcementCategorySchema.optional(),
 
   search: z.string().trim().min(1, 'Search query cannot be empty').optional(),
+  sort: z.enum(['newest', 'oldest']).default('newest'),
 });

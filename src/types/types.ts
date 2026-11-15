@@ -1,10 +1,12 @@
-export type AnnouncementCategory = 'sale' | 'buy' | 'rent' | 'services';
+import { z } from 'zod';
+import {
+  announcementIdSchema,
+  createAnnouncementSchema,
+  updateAnnouncementSchema,
+} from '../validators/announcements.validator.ts';
 
-export type createAnnouncementType = {
-  title: string;
-  description: string;
-  price: number;
-  category: AnnouncementCategory;
-};
+export type CreateAnnouncementBody = z.infer<typeof createAnnouncementSchema>;
 
-export type updateAnnouncementType = Partial<createAnnouncementType>;
+export type UpdateAnnouncementBody = z.infer<typeof updateAnnouncementSchema>;
+
+export type AnnouncementParams = z.infer<typeof announcementIdSchema>;

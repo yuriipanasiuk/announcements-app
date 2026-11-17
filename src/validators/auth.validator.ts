@@ -4,18 +4,38 @@ import { registry } from '../openapi.ts';
 export const RegisterSchema = registry.register(
   'Register',
   z.object({
-    username: z.string().min(3).max(30),
-    email: z.string().email(),
-    password: z.string().min(6),
-    name: z.string().min(2),
+    username: z
+      .string({ error: 'Username is required' })
+      .min(3, 'Username must be at least 3 characters')
+      .max(30, 'Username must be at most 30 characters'),
+    email: z
+      .string({ error: 'Email is required' })
+      .email('Invalid email format'),
+    password: z
+      .string({ error: 'Password is required' })
+      .min(6, 'Password must be at least 6 characters'),
+    name: z
+      .string({ error: 'Name is required' })
+      .min(2, 'Name must be at least 2 characters'),
+  })
+);
+
+export const RefreshSchema = registry.register(
+  'Refresh',
+  z.object({
+    refreshToken: z.string({ error: 'refreshToken is required' }),
   })
 );
 
 export const LoginSchema = registry.register(
   'Login',
   z.object({
-    username: z.string().min(3),
-    password: z.string().min(3),
+    username: z
+      .string({ error: 'Username is required' })
+      .min(3, 'Username must be at least 3 characters'),
+    password: z
+      .string({ error: 'Password is required' })
+      .min(3, 'Password must be at least 3 characters'),
   })
 );
 

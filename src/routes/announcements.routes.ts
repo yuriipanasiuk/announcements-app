@@ -17,6 +17,7 @@ import {
   QueryAnnouncementsSchema,
   UpdateAnnouncementSchema,
 } from '../validators/announcements.validator.ts';
+import { authenticate } from '../middleware/authenticate.ts';
 
 const announcementsRouter = Router();
 
@@ -25,6 +26,7 @@ announcementsRouter.get(
   validateQuery(QueryAnnouncementsSchema),
   getAllAnnouncements
 );
+
 announcementsRouter.get(
   '/:id',
   validateParams(AnnouncementIdSchema),
@@ -33,18 +35,22 @@ announcementsRouter.get(
 
 announcementsRouter.post(
   '/',
+  authenticate,
   validateBody(CreateAnnouncementSchema),
   createAnnouncement
 );
 
 announcementsRouter.patch(
   '/:id',
+  authenticate,
   validateParams(AnnouncementIdSchema),
   validateBody(UpdateAnnouncementSchema),
   updateAnnouncementById
 );
+
 announcementsRouter.delete(
   '/:id',
+  authenticate,
   validateParams(AnnouncementIdSchema),
   deleteAnnouncementById
 );

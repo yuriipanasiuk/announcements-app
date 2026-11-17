@@ -18,7 +18,7 @@ const announcementInclude = {
 } as const;
 
 export const getAllAnnouncements = async (req: Request, res: Response) => {
-  const { page, limit, search, category, sort } = res.locals.query;
+  const { page = 1, limit = 10, search, category, sort } = res.locals.query;
 
   const skip = (page - 1) * limit;
   const order = sort === 'oldest' ? 'asc' : 'desc';

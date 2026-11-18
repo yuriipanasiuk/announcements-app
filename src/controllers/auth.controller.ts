@@ -1,30 +1,11 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { LoginUserBody, RegisterUserBody } from '../types/types.ts';
 import prisma from '../../prisma/client.ts';
+import { generateTokens, verifyRefreshToken } from '../services/auth.ts';
+import createHttpError from 'http-errors';
 
 const saltRounds = 10;
-const ACCESS_SECRET_KEY: string = process.env.ACCESS_SECRET_KEY as string;
-const REFRESH_SECRET_KEY: string = process.env.REFRESH_SECRET_KEY as string;
-
-interface JwtPayload {
-  sub: number;
-}
-
-const generateTokens = (userId: number) => {
-  const payload: JwtPayload = { sub: userId };
-
-  const accessToken = jwt.sign(payload, ACCESS_SECRET_KEY, {
-    expiresIn: '15m',
-  });
-
-  const refreshToken = jwt.sign(payload, REFRESH_SECRET_KEY, {
-    expiresIn: '7d',
-  });
-
-  return { accessToken, refreshToken };
-};
 
 export const register = async (
   req: Request<{}, {}, RegisterUserBody>,
@@ -39,9 +20,7 @@ export const register = async (
   });
 
   if (existingUser) {
-    return res.status(409).json({
-      message: 'Username or email already taken',
-    });
+    throw createHttpError(409, 'Username or email already taken');
   }
 
   const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -88,17 +67,13 @@ export const login = async (
   });
 
   if (!user) {
-    return res.status(401).json({
-      message: 'Invalid credentials',
-    });
+    throw createHttpError(401, 'Invalid credentials');
   }
 
   const passwordCompare = await bcrypt.compare(password, user.password);
 
   if (!passwordCompare) {
-    return res.status(401).json({
-      message: 'Invalid credentials',
-    });
+    throw createHttpError(401, 'Invalid credentials');
   }
 
   const { accessToken, refreshToken } = generateTokens(user.id);
@@ -131,11 +106,11 @@ export const login = async (
 export const logout = async (req: Request, res: Response) => {
   const userId = req.user?.sub;
 
-  if (userId) {
-    await prisma.refreshToken.deleteMany({
-      where: { userId },
-    });
-  }
+  await prisma.refreshToken.deleteMany({
+    where: {
+      userId,
+    },
+  });
 
   return res.status(204).end();
 };
@@ -147,41 +122,35 @@ export const refresh = async (
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
-    return res.status(401).json({ message: 'Invalid refresh token' });
+    throw createHttpError(401, 'Refresh token not provided');
   }
 
-  try {
-    const decoded = jwt.verify(refreshToken, REFRESH_SECRET_KEY) as unknown as {
-      sub: number;
-    };
+  verifyRefreshToken(refreshToken);
 
-    const storedToken = await prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-    });
+  const storedToken = await prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+  });
 
-    if (!storedToken) {
-      return res.status(401).json({ message: 'Invalid refresh token' });
-    }
-
-    const tokens = generateTokens(decoded.sub);
-
-    await prisma.$transaction([
-      prisma.refreshToken.delete({
-        where: { id: storedToken.id },
-      }),
-
-      prisma.refreshToken.create({
-        data: {
-          token: tokens.refreshToken,
-          userId: decoded.sub,
-        },
-      }),
-    ]);
-
-    return res.status(200).json(tokens);
-  } catch {
-    return res.status(401).json({ message: 'Invalid refresh token' });
+  if (!storedToken) {
+    throw createHttpError(401, 'Invalid refresh token');
   }
+
+  const tokens = generateTokens(storedToken.userId);
+
+  await prisma.$transaction([
+    prisma.refreshToken.delete({
+      where: { id: storedToken.id },
+    }),
+
+    prisma.refreshToken.create({
+      data: {
+        token: tokens.refreshToken,
+        userId: storedToken.userId,
+      },
+    }),
+  ]);
+
+  return res.status(200).json(tokens);
 };
 
 export const getMe = async (req: Request, res: Response) => {
@@ -199,7 +168,7 @@ export const getMe = async (req: Request, res: Response) => {
   });
 
   if (!user) {
-    return res.status(404).json({ message: 'User not found' });
+    throw createHttpError(404, 'User not found');
   }
 
   return res.json(user);

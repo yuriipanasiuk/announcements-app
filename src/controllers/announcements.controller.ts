@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import createHttpError from 'http-errors';
 import prisma from '../../prisma/client.ts';
 import {
   AnnouncementParams,
@@ -70,9 +71,7 @@ export const getAnnouncementById = async (
   });
 
   if (!announcement) {
-    return res.status(404).json({
-      error: 'Announcement not found',
-    });
+    throw createHttpError(404, 'Announcement not found');
   }
 
   return res.status(200).json(announcement);
@@ -85,12 +84,6 @@ export const createAnnouncement = async (
   const { title, category, description, price } = req.body;
 
   const userId = Number(req.user?.sub);
-
-  if (!Number.isInteger(userId) || userId <= 0) {
-    return res.status(401).json({
-      error: 'Unauthorized user',
-    });
-  }
 
   const announcement = await prisma.announcement.create({
     data: {
@@ -117,17 +110,13 @@ export const updateAnnouncementById = async (
   });
 
   if (!announcement) {
-    return res.status(404).json({
-      error: 'Announcement not found',
-    });
+    throw createHttpError(404, 'Announcement not found');
   }
 
   const currentUserId = Number(req.user?.sub);
 
   if (announcement.userId !== currentUserId) {
-    return res.status(403).json({
-      error: 'Access denied',
-    });
+    throw createHttpError(403, 'Access denied');
   }
 
   const updatedAnnouncement = await prisma.announcement.update({
@@ -150,15 +139,11 @@ export const deleteAnnouncementById = async (
   });
 
   if (!announcement) {
-    return res.status(404).json({
-      error: 'Announcement not found',
-    });
+    throw createHttpError(404, 'Announcement not found');
   }
 
   if (announcement.userId !== Number(req.user?.sub)) {
-    return res.status(403).json({
-      error: 'Access denied',
-    });
+    throw createHttpError(403, 'Access denied');
   }
 
   await prisma.announcement.delete({ where: { id } });

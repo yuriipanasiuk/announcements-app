@@ -42,7 +42,8 @@ cp .env.example .env
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5433/announcements_db?schema=public
-JWT_SECRET=your-secret-key-at-least-256-bits-long
+ACCESS_SECRET_KEY=your-secret-key-at-least-256-bits-long
+REFRESH_SECRET_KEY=your-secret-key-at-least-256-bits-long
 ```
 
 4. Застосуйте міграцію:

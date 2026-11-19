@@ -84,7 +84,7 @@ export const QueryAnnouncementsSchema = registry.register(
   z.strictObject({
     page: z.coerce.number().int().min(1, 'Page must be at least 1').default(1),
 
-    limit: z.coerce
+    perPage: z.coerce
       .number()
       .int()
       .min(1, 'Limit must be at least 1')

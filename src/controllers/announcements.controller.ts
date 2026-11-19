@@ -54,7 +54,7 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
       total,
       page,
       totalPages: Math.ceil(total / limit),
-      limit,
+      perPage: limit,
     },
   });
 };

@@ -83,7 +83,7 @@ registry.registerPath({
     201: {
       description: 'Created',
       content: {
-        'application/json': { schema: UserResponseSchema },
+        'application/json': { schema: AuthResponseSchema },
       },
     },
     409: { description: 'Username or email already taken' },
@@ -121,7 +121,7 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': { schema: AuthTokenSchema },
+        'application/json': { schema: RefreshSchema },
       },
     },
   },

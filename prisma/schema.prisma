@@ -34,13 +34,14 @@ model RefreshToken {
 }
 
 model Announcement {
-  id          Int    @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   title       String
   description String
   price       Int
   category    String
+  imageUrl    String?
   userId      Int
-  user        User   @relation(fields: [userId], references: [id])
+  user        User    @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

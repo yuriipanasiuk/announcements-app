@@ -2,26 +2,51 @@ import express, { NextFunction, Request, Response } from 'express';
 import swaggerUi from 'swagger-ui-express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { pinoHttp } from 'pino-http';
+import { v2 as cloudinary } from 'cloudinary';
 import 'dotenv/config';
 
 import { generateOpenApiDocument } from './src/openapi.ts';
 import announcementsRouter from './src/routes/announcements.routes.ts';
 import { authRoutes } from './src/routes/auth.routes.ts';
+import { logger } from './src/logger.ts';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const app = express();
 
-app.use(cors());
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later' },
+});
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+);
+
+app.use(helmet());
+app.use(pinoHttp({ logger }));
 app.use(express.json());
 app.use(cookieParser());
 
 const openApiDocument = generateOpenApiDocument();
-app.use((req, res, next) => {
-  console.log('Incoming request:', req.method, req.originalUrl);
-  next();
-});
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 app.use('/announcements', announcementsRouter);
-app.use('/auth', authRoutes);
+app.use('/auth', strictLimiter, authRoutes);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' });
@@ -29,7 +54,7 @@ app.use((_req: Request, res: Response) => {
 
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
+  logger.error({ err }, 'Unhandled application error');
 
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({
@@ -62,5 +87,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 const PORT = process.env.PORT ?? 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}: http://localhost:${PORT}`);
+  logger.info(`Server is running on port ${PORT}: http://localhost:${PORT}`);
 });

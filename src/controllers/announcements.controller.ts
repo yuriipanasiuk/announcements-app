@@ -96,6 +96,11 @@ export const createAnnouncement = async (
     include: announcementInclude,
   });
 
+  req.log.info(
+    { announcementId: announcement.id, userId },
+    'Announcement created'
+  );
+
   res.status(201).json(announcement);
 };
 

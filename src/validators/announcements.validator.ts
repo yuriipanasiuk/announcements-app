@@ -22,9 +22,14 @@ export const CreateAnnouncementSchema = registry.register(
       .string({ error: 'Description is required and must be a string' })
       .min(10, 'Description must contain at least 10 characters'),
 
-    price: z
+    price: z.coerce
       .number({ error: 'Price is required and must be a number' })
       .positive('Price must be greater than 0'),
+
+    imageUrl: z.string().url('Invalid image URL').optional().openapi({
+      example:
+        'https://res.cloudinary.com/demo/image/upload/v1/announcements/abc123.jpg',
+    }),
 
     category: AnnouncementCategorySchema,
   })
@@ -44,6 +49,10 @@ const AnnouncementResponseSchema = registry.register(
   'Announcement',
   CreateAnnouncementSchema.extend({
     id: z.number().int().openapi({ example: 5 }),
+    imageUrl: z.string().url().nullable().optional().openapi({
+      example:
+        'https://res.cloudinary.com/demo/image/upload/v1/announcements/abc123.jpg',
+    }),
     createdAt: z
       .string()
       .datetime()
@@ -145,7 +154,14 @@ registry.registerPath({
   request: {
     body: {
       content: {
-        'application/json': { schema: CreateAnnouncementSchema },
+        'multipart/form-data': {
+          schema: CreateAnnouncementSchema.extend({
+            photo: z
+              .any()
+              .optional()
+              .openapi({ type: 'string', format: 'binary' }),
+          }),
+        },
       },
     },
   },
@@ -171,7 +187,14 @@ registry.registerPath({
     params: AnnouncementIdSchema,
     body: {
       content: {
-        'application/json': { schema: UpdateAnnouncementSchema },
+        'multipart/form-data': {
+          schema: UpdateAnnouncementSchema.extend({
+            photo: z
+              .any()
+              .optional()
+              .openapi({ type: 'string', format: 'binary' }),
+          }),
+        },
       },
     },
   },

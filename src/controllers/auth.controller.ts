@@ -49,6 +49,8 @@ export const register = async (
     },
   });
 
+  req.log.info({ userId: newUser.id }, 'User registered');
+
   return res.status(201).json({
     user: newUser,
     accessToken,
@@ -90,6 +92,8 @@ export const login = async (
       },
     }),
   ]);
+
+  req.log.info({ userId: user.id }, 'User logged in');
 
   return res.status(200).json({
     user: {

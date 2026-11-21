@@ -18,6 +18,7 @@ import {
   UpdateAnnouncementSchema,
 } from '../validators/announcements.validator.ts';
 import { authenticate } from '../middleware/authenticate.ts';
+import { upload, uploadPhotoToCloudinary } from '../middleware/upload.ts';
 
 const announcementsRouter = Router();
 
@@ -36,6 +37,7 @@ announcementsRouter.get(
 announcementsRouter.post(
   '/',
   authenticate,
+  uploadPhotoToCloudinary('photo'),
   validateBody(CreateAnnouncementSchema),
   createAnnouncement
 );
@@ -44,6 +46,7 @@ announcementsRouter.patch(
   '/:id',
   authenticate,
   validateParams(AnnouncementIdSchema),
+  uploadPhotoToCloudinary('photo'),
   validateBody(UpdateAnnouncementSchema),
   updateAnnouncementById
 );

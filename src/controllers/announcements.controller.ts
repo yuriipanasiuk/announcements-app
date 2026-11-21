@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import createHttpError from 'http-errors';
+
 import prisma from '../../prisma/client.ts';
 import {
   AnnouncementParams,
@@ -18,7 +19,7 @@ const announcementInclude = {
   },
 } as const;
 
-export const getAllAnnouncements = async (req: Request, res: Response) => {
+export const getAllAnnouncements = async (_req: Request, res: Response) => {
   const { page = 1, limit = 10, search, category, sort } = res.locals.query;
 
   const skip = (page - 1) * limit;
@@ -60,10 +61,10 @@ export const getAllAnnouncements = async (req: Request, res: Response) => {
 };
 
 export const getAnnouncementById = async (
-  req: Request<AnnouncementParams>,
-  res: Response
+  _req: Request,
+  res: Response<unknown, { params: AnnouncementParams }>
 ) => {
-  const { id } = req.params;
+  const { id } = res.locals.params;
 
   const announcement = await prisma.announcement.findUnique({
     where: { id },
@@ -81,7 +82,7 @@ export const createAnnouncement = async (
   req: Request<{}, {}, CreateAnnouncementBody>,
   res: Response
 ) => {
-  const { title, category, description, price } = req.body;
+  const { title, category, description, price, imageUrl } = req.body;
 
   const userId = Number(req.user?.sub);
 
@@ -91,6 +92,7 @@ export const createAnnouncement = async (
       description: description.trim(),
       price,
       category,
+      ...(imageUrl && { imageUrl }),
       userId,
     },
     include: announcementInclude,
@@ -105,10 +107,10 @@ export const createAnnouncement = async (
 };
 
 export const updateAnnouncementById = async (
-  req: Request<AnnouncementParams, {}, UpdateAnnouncementBody>,
-  res: Response
+  req: Request<UpdateAnnouncementBody>,
+  res: Response<unknown, { params: AnnouncementParams }>
 ) => {
-  const { id } = req.params;
+  const { id } = res.locals.params;
 
   const announcement = await prisma.announcement.findUnique({
     where: { id },
@@ -134,10 +136,10 @@ export const updateAnnouncementById = async (
 };
 
 export const deleteAnnouncementById = async (
-  req: Request<AnnouncementParams>,
-  res: Response
+  req: Request,
+  res: Response<unknown, { params: AnnouncementParams }>
 ) => {
-  const { id } = req.params;
+  const { id } = res.locals.params;
 
   const announcement = await prisma.announcement.findUnique({
     where: { id },

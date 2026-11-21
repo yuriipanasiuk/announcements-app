@@ -107,6 +107,16 @@ export const QueryAnnouncementsSchema = registry.register(
   })
 );
 
+const AnnouncementMultipartSchema = CreateAnnouncementSchema.omit({
+  imageUrl: true,
+}).extend({
+  photo: z.string().optional().openapi({
+    type: 'string',
+    format: 'binary',
+    description: 'Image file to upload',
+  }),
+});
+
 registry.registerPath({
   method: 'get',
   path: '/announcements',
@@ -155,12 +165,7 @@ registry.registerPath({
     body: {
       content: {
         'multipart/form-data': {
-          schema: CreateAnnouncementSchema.extend({
-            photo: z
-              .any()
-              .optional()
-              .openapi({ type: 'string', format: 'binary' }),
-          }),
+          schema: AnnouncementMultipartSchema,
         },
       },
     },
@@ -188,12 +193,7 @@ registry.registerPath({
     body: {
       content: {
         'multipart/form-data': {
-          schema: UpdateAnnouncementSchema.extend({
-            photo: z
-              .any()
-              .optional()
-              .openapi({ type: 'string', format: 'binary' }),
-          }),
+          schema: AnnouncementMultipartSchema.partial(),
         },
       },
     },

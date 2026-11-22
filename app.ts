@@ -11,7 +11,7 @@ import announcementsRouter from './src/routes/announcements.routes.ts';
 import { authRoutes } from './src/routes/auth.routes.ts';
 import { logger } from './src/logger.ts';
 
-const app = express();
+export const app = express();
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 

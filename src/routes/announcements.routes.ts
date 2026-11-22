@@ -18,7 +18,7 @@ import {
   UpdateAnnouncementSchema,
 } from '../validators/announcements.validator.ts';
 import { authenticate } from '../middleware/authenticate.ts';
-import { upload, uploadPhotoToCloudinary } from '../middleware/upload.ts';
+import { uploadPhotoToCloudinary } from '../middleware/upload.ts';
 
 const announcementsRouter = Router();
 

@@ -42,6 +42,7 @@ cp .env.example .env
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5433/announcements_db?schema=public
+TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5433/announcements_db_test"
 ACCESS_SECRET_KEY=your-secret-key-at-least-256-bits-long
 REFRESH_SECRET_KEY=your-secret-key-at-least-256-bits-long
 ```
@@ -56,6 +57,13 @@ npm run prisma:migrate
 
 ```bash
 npm run dev
+```
+
+6. Запуску тестів:
+
+```bash
+npm run db:migrate:test
+npm test 
 ```
 
 ## Маршрути
@@ -118,26 +126,36 @@ boilerplate/
 │   ├── schema.prisma
 │   ├── client.ts
 │   └── migrations/
+│── scripts
+│   └── migrate-test.ts
 ├── src/
 │   ├── controllers/
 │   │   ├── auth.controller.ts
 │   │   └── announcements.controller.ts
 │   ├── middleware/
 │   │   ├── authenticate.ts
+│   │   ├── upload.ts
 │   │   └── validate.ts
 │   ├── routes/
 │   │   ├── auth.routes.ts
 │   │   └── announcements.routes.ts
+│   ├── services
+│   │   └── auth.ts
 │   ├── validators/
 │   │   ├── auth.validator.ts
 │   │   └── announcements.validator.ts
-│   └── openapi.ts
-├── app.ts
+│   │── openapi.ts
+    └── app.ts
+├── index.ts
+├── uploads
+├── tests
 ├── .env.example
 ├── .env
 ├── package.json
 ├── tsconfig.json
 ├── prisma.config.ts
+├── vitest.config.ts
+├── docker-compose.yml
 └── README.md
 ```
 
@@ -155,11 +173,13 @@ boilerplate/
 ## Доступні скрипти
 
 | Команда                   | Опис                                 |
-| ------------------------- | ------------------------------------ |
+|---------------------------|--------------------------------------|
 | `npm run dev`             | Запуск з hot reload (`node --watch`) |
 | `npm start`               | Запуск у виробничому режимі          |
 | `npm run prisma:migrate`  | Створення та застосування міграцій   |
 | `npm run prisma:generate` | Генерація Prisma Client              |
+| `npm test`                | Запуск тестів                        |
+| `npm run db:migrate:test` | Створення тестової бази              |
 
 ## Документація API
 

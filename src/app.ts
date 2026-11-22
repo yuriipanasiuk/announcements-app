@@ -6,10 +6,10 @@ import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import 'dotenv/config';
 
-import { generateOpenApiDocument } from './src/openapi.ts';
-import announcementsRouter from './src/routes/announcements.routes.ts';
-import { authRoutes } from './src/routes/auth.routes.ts';
-import { logger } from './src/logger.ts';
+import { generateOpenApiDocument } from './openapi.ts';
+import announcementsRouter from './routes/announcements.routes.ts';
+import { authRoutes } from './routes/auth.routes.ts';
+import { logger } from './logger.ts';
 
 export const app = express();
 
@@ -66,10 +66,4 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   }
 
   res.status(500).json({ error: 'Internal server error' });
-});
-
-const PORT = process.env.PORT ?? 3000;
-
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}: http://localhost:${PORT}`);
 });

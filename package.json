@@ -2,12 +2,13 @@
   "name": "announcements-app",
   "version": "1.0.0",
   "description": "",
-  "main": "app.ts",
+  "main": "index.ts",
   "scripts": {
-    "start": "tsx app.ts",
-    "dev": "tsx --watch app.ts",
+    "start": "tsx index.ts",
+    "dev": "tsx --watch index.ts",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
+    "db:migrate:test": "tsx scripts/migrate-test.ts",
     "test": "vitest"
   },
   "keywords": [],

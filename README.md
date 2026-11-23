@@ -179,6 +179,7 @@ boilerplate/
 | `npm run prisma:migrate`  | Створення та застосування міграцій   |
 | `npm run prisma:generate` | Генерація Prisma Client              |
 | `npm test`                | Запуск тестів                        |
+| `npm run test:coverage`   | Покриття коду теестами               |
 | `npm run db:migrate:test` | Створення тестової бази              |
 
 ## Документація API

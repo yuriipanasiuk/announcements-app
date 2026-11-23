@@ -8,6 +8,7 @@ import {
   verifyRefreshToken,
 } from '../src/services/auth.ts';
 import prisma from '../prisma/client.ts';
+import bcrypt from 'bcrypt';
 
 describe('JWT Tokens', () => {
   beforeAll(() => {
@@ -71,9 +72,13 @@ describe('Auth Integration Tests', () => {
     name: 'User',
   };
 
+  const takenUsername = `olena_${timestamp}`;
+
   afterAll(async () => {
     await prisma.user.deleteMany({
-      where: { username: testUser.username },
+      where: {
+        username: { in: [testUser.username, takenUsername] },
+      },
     });
 
     await prisma.$disconnect();
@@ -101,6 +106,29 @@ describe('Auth Integration Tests', () => {
     });
 
     expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('error');
+  });
+
+  it('returns 409 if the username is already taken', async () => {
+    await prisma.user.create({
+      data: {
+        username: takenUsername,
+        email: `different_${timestamp}@example.com`,
+        password: await bcrypt.hash('secret123', 10),
+        name: 'Olena',
+      },
+    });
+
+    const response = await request(app)
+      .post('/auth/register')
+      .send({
+        username: takenUsername,
+        email: `another_${timestamp}@example.com`,
+        password: 'secret123',
+        name: 'Other Olena',
+      });
+
+    expect(response.status).toBe(409);
     expect(response.body).toHaveProperty('error');
   });
 });

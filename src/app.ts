@@ -17,7 +17,14 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
   })
 );
 
@@ -39,6 +46,10 @@ app.use((_req: Request, res: Response) => {
 // Error handling middleware
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   logger.error({ err }, 'Unhandled application error');
+
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: err.message });
+  }
 
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({
